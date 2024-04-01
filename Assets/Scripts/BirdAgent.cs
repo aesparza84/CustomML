@@ -4,20 +4,23 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
+using Unity.Sentis.Layers;
 
 public class BirdAgent : Agent
 {
-    private Vector3 targetPosition;
     private Vector3 StartingPositon;
+    private Vector3 StartingRotation;
 
-    [SerializeField] private Transform Rings;
-    private Transform[] RingArray;
+    [SerializeField] private RingArena? Rings;
+    private GameObject CurrentRingObject;
+    private int MaxIndex;
 
     private int CurrentRingIndex;
     private int MaxRingIndex;
 
     [SerializeField] private float ForceMulitplier;
     private Rigidbody agentRb;
+    private Vector3 MovementVector;
 
     private float Pitch;
     private float Yaw;
@@ -25,29 +28,24 @@ public class BirdAgent : Agent
     void Start()
     {
         StartingPositon = transform.position;
+        StartingRotation = transform.rotation.eulerAngles;
 
         CurrentRingIndex = 0;
-
         if (Rings != null)
         {
-            RingArray = new Transform[Rings.childCount];
-            for (int i = 0; i < Rings.childCount; i++)
-            {
-                RingArray[i] = Rings.GetChild(i);
-            }
-        }
+            MaxIndex = Rings.GetMaxIndex();
 
-        //If the array is populated and not null
-        if (RingArray.Length>0)
-        {
-            MaxRingIndex = RingArray.Length - 1;
+            CurrentRingObject = Rings.GetRing(CurrentRingIndex);
         }
+        
 
         //Reference the rigidbody that will move the agent
         if (TryGetComponent<Rigidbody>(out Rigidbody r))
         {
             agentRb = r;
         }
+
+        MovementVector = Vector3.zero;
 
         MaxPitch = 80;
         Pitch = 0.0f;
@@ -58,16 +56,31 @@ public class BirdAgent : Agent
     {
         //Reset the bird to the start
         gameObject.transform.position = StartingPositon;
-        
+        gameObject.transform.rotation = Quaternion.Euler(StartingRotation);
+        agentRb.velocity = Vector3.zero;
+
+        //Reset the Rings
+        if (Rings != null)
+        {
+            Rings.ResetAllRings();
+        }
+
         //Set the target to be the First ring in array
         CurrentRingIndex = 0;
+        CurrentRingObject = Rings.GetRing(CurrentRingIndex);
     }
     public override void CollectObservations(VectorSensor sensor)
     {
         //TODO: Add observations about the learning environment
        
         //Agents current position
-        sensor.AddObservation(gameObject.transform.position);
+        sensor.AddObservation(gameObject.transform.position);//3
+        sensor.AddObservation(CurrentRingObject.transform.position);//3
+        sensor.AddObservation(agentRb.velocity.x);//1
+        sensor.AddObservation(agentRb.velocity.y);//1
+        sensor.AddObservation(agentRb.velocity.z);//1
+
+        //Total 9
     }
 
 
@@ -86,13 +99,13 @@ public class BirdAgent : Agent
         //TODO: Add inputs for the 'bird' to fly
 
         //Set the input vector for movement
-        Vector3 vectorInput = Vector3.zero;
-        vectorInput.x = actions.ContinuousActions[0];
-        vectorInput.y = actions.ContinuousActions[1];
-        vectorInput.z = actions.ContinuousActions[2];
+        MovementVector = Vector3.zero;
+        MovementVector.x = actions.ContinuousActions[0];
+        MovementVector.y = actions.ContinuousActions[1];
+        MovementVector.z = actions.ContinuousActions[2];
         
         //Add force to agents Rigidbody
-        agentRb.AddForce(vectorInput * ForceMulitplier);
+        agentRb.AddForce(MovementVector * ForceMulitplier);
 
         //Current rotation
         Vector3 currentRotation = gameObject.transform.rotation.eulerAngles;
@@ -115,6 +128,47 @@ public class BirdAgent : Agent
 
         //apply pitch and yaw
         gameObject.transform.rotation = Quaternion.Euler(pitch, yaw, 0);
+
+        float distanceToRing = Vector3.Distance(transform.position, CurrentRingObject.transform.position);
+        if (distanceToRing < 0.5f)
+        {
+            CurrentRingObject.SetActive(false);
+            AddReward(1.0f);
+
+            if (CurrentRingIndex < MaxIndex)
+            {
+                CurrentRingIndex++;
+                CurrentRingObject = Rings.GetRing(CurrentRingIndex);
+            }
+            else
+            {
+                EndEpisode();
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (CurrentRingObject != null)
+        {
+            float distanceToRing = Vector3.Distance(transform.position, CurrentRingObject.transform.position);
+            Debug.Log(distanceToRing);
+            if (distanceToRing < 0.5f)
+            {
+                CurrentRingObject.SetActive(false);
+                //AddReward(1.0f);
+
+                if (CurrentRingIndex < MaxIndex)
+                {
+                    CurrentRingIndex++;
+                    CurrentRingObject = Rings.GetRing(CurrentRingIndex);
+                }
+                else
+                {
+                    //EndEpisode();
+                }
+            }
+        }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -185,6 +239,29 @@ public class BirdAgent : Agent
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Trigger enterd");       
+        Debug.Log("Trigger enterd");
+        if (other.CompareTag("Edge"))
+        {
+            AddReward(-1.0f);
+            EndEpisode();
+        }
+
+        
+        //else
+        //{
+        //    other.gameObject.SetActive(false);
+        //    AddReward(1.0f);
+
+        //    if (CurrentRingIndex < MaxIndex)
+        //    {
+        //        CurrentRingIndex++;
+        //        CurrentRingObject = Rings.GetRing(CurrentRingIndex);
+        //    }
+        //    else
+        //    {
+        //        EndEpisode();
+        //    }
+        //}
+
     }
 }
