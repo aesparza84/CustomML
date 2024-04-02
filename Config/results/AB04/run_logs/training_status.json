@@ -2,22 +2,22 @@
     "ArenaBird": {
         "checkpoints": [
             {
-                "steps": 33102,
-                "file_path": "results\\AB01\\ArenaBird\\ArenaBird-33102.onnx",
+                "steps": 100026,
+                "file_path": "results\\AB04\\ArenaBird\\ArenaBird-100026.onnx",
                 "reward": null,
-                "creation_time": 1712008215.8491235,
+                "creation_time": 1712022928.2457902,
                 "auxillary_file_paths": [
-                    "results\\AB01\\ArenaBird\\ArenaBird-33102.pt"
+                    "results\\AB04\\ArenaBird\\ArenaBird-100026.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 33102,
-            "file_path": "results\\AB01\\ArenaBird.onnx",
+            "steps": 100026,
+            "file_path": "results\\AB04\\ArenaBird.onnx",
             "reward": null,
-            "creation_time": 1712008215.8491235,
+            "creation_time": 1712022928.2457902,
             "auxillary_file_paths": [
-                "results\\AB01\\ArenaBird\\ArenaBird-33102.pt"
+                "results\\AB04\\ArenaBird\\ArenaBird-100026.pt"
             ]
         }
     },

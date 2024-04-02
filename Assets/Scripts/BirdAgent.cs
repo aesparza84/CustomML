@@ -14,6 +14,7 @@ public class BirdAgent : Agent
     [SerializeField] private RingArena? Rings;
     private GameObject CurrentRingObject;
     private int MaxIndex;
+    private const float EnterThreshold = 0.65f;
 
     private int CurrentRingIndex;
     private int MaxRingIndex;
@@ -73,9 +74,11 @@ public class BirdAgent : Agent
     {
         //TODO: Add observations about the learning environment
        
-        //Agents current position
+        //Agents and target current position
         sensor.AddObservation(gameObject.transform.position);//3
         sensor.AddObservation(CurrentRingObject.transform.position);//3
+
+        //Movement values
         sensor.AddObservation(agentRb.velocity.x);//1
         sensor.AddObservation(agentRb.velocity.y);//1
         sensor.AddObservation(agentRb.velocity.z);//1
@@ -130,7 +133,7 @@ public class BirdAgent : Agent
         gameObject.transform.rotation = Quaternion.Euler(pitch, yaw, 0);
 
         float distanceToRing = Vector3.Distance(transform.position, CurrentRingObject.transform.position);
-        if (distanceToRing < 0.5f)
+        if (distanceToRing <= EnterThreshold)
         {
             CurrentRingObject.SetActive(false);
             AddReward(1.0f);
@@ -146,31 +149,6 @@ public class BirdAgent : Agent
             }
         }
     }
-
-    private void Update()
-    {
-        if (CurrentRingObject != null)
-        {
-            float distanceToRing = Vector3.Distance(transform.position, CurrentRingObject.transform.position);
-            Debug.Log(distanceToRing);
-            if (distanceToRing < 0.5f)
-            {
-                CurrentRingObject.SetActive(false);
-                //AddReward(1.0f);
-
-                if (CurrentRingIndex < MaxIndex)
-                {
-                    CurrentRingIndex++;
-                    CurrentRingObject = Rings.GetRing(CurrentRingIndex);
-                }
-                else
-                {
-                    //EndEpisode();
-                }
-            }
-        }
-    }
-
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         //TODO: Add heuristic inputs for testing control
@@ -242,7 +220,6 @@ public class BirdAgent : Agent
         Debug.Log("Trigger enterd");
         if (other.CompareTag("Edge"))
         {
-            AddReward(-1.0f);
             EndEpisode();
         }
 
@@ -263,5 +240,13 @@ public class BirdAgent : Agent
         //    }
         //}
 
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Edge"))
+        {
+            EndEpisode();
+        }
     }
 }

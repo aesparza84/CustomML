@@ -26,7 +26,7 @@ public class RingArena : MonoBehaviour
         for (int i = 0; i < RingArray.Length; i++)
         {
             RingArray[i].gameObject.SetActive(true);
-            render = RingArray[i].GetComponent<MeshRenderer>();
+            render = RingArray[i].GetComponentInChildren<MeshRenderer>();
             render.material.color = DefaultColor;
         }
     }
@@ -55,6 +55,6 @@ public class RingArena : MonoBehaviour
 
     private void SetActiveColor(int index)
     {
-        RingArray[index].GetComponent<MeshRenderer>().material.color = ActiveColor;
+        RingArray[index].GetComponentInChildren<MeshRenderer>().material.color = ActiveColor;
     }
 }
