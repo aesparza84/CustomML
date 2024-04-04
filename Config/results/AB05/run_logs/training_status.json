@@ -1,0 +1,29 @@
+{
+    "ArenaBird": {
+        "checkpoints": [
+            {
+                "steps": 100050,
+                "file_path": "results\\AB05\\ArenaBird\\ArenaBird-100050.onnx",
+                "reward": null,
+                "creation_time": 1712260875.9174564,
+                "auxillary_file_paths": [
+                    "results\\AB05\\ArenaBird\\ArenaBird-100050.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 100050,
+            "file_path": "results\\AB05\\ArenaBird.onnx",
+            "reward": null,
+            "creation_time": 1712260875.9174564,
+            "auxillary_file_paths": [
+                "results\\AB05\\ArenaBird\\ArenaBird-100050.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "1.13.1+cu117"
+    }
+}
